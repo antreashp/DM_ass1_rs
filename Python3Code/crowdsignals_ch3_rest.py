@@ -21,108 +21,124 @@ from Chapter3.ImputationMissingValues import ImputationMissingValues
 from Chapter3.KalmanFilters import KalmanFilters
 
 # Set up the file names and locations.
-DATA_PATH = Path('./intermediate_datafiles/')
-DATASET_FNAME = sys.argv[1] if len(sys.argv) > 1 else 'chapter3_result_outliers4.csv'
-RESULT_FNAME = sys.argv[2] if len(sys.argv) > 2 else 'chapter3_result_rest4.csv'
-ORIG_DATASET_FNAME = sys.argv[3] if len(sys.argv) > 3 else '../../simple_dataset/4/accelerometer.csv'
+for user in range(1,34):
+    
+    DATA_PATH = Path('./intermediate_datafiles/')
+    DATASET_FNAME = sys.argv[1] if len(sys.argv) > 1 else 'AS14_'+"{:02d}".format(user)+'/chapter2_result.csv'
+# DATA_PATH = Path('./intermediate_datafiles/')
+# DATASET_FNAME = sys.argv[1] if len(sys.argv) > 1 else 'chapter3_result_outliers4.csv'
+    RESULT_FNAME = sys.argv[2] if len(sys.argv) > 2 else 'chapter3_result_rest4.csv'
+    ORIG_DATASET_FNAME =  sys.argv[1] if len(sys.argv) > 1 else 'AS14_'+"{:02d}".format(user)+'/chapter2_result.csv'
 
-# Next, import the data from the specified location and parse the date index.
-try:
-    dataset = pd.read_csv(Path(DATA_PATH / DATASET_FNAME), index_col=0)
-    dataset.index = pd.to_datetime(dataset.index)
-except IOError as e:
-    print('File not found, try to run previous crowdsignals scripts first!')
-    raise e
+    # Next, import the data from the specified location and parse the date index.
+    try:
+        dataset = pd.read_csv(Path(DATA_PATH / DATASET_FNAME), index_col=0)
+        dataset.index = pd.to_datetime(dataset.index)
+    except IOError as e:
+        print('File not found, try to run previous crowdsignals scripts first!')
+        raise e
 
-# We'll create an instance of our visualization class to plot the results.
-DataViz = VisualizeDataset(__file__)
+    # We'll create an instance of our visualization class to plot the results.
+    DataViz = VisualizeDataset(__file__)
 
-# Compute the number of milliseconds covered by an instance based on the first two rows
-milliseconds_per_instance = (dataset.index[1] - dataset.index[0]).microseconds/1000
+    # Compute the number of milliseconds covered by an instance based on the first two rows
+    milliseconds_per_instance = (dataset.index[1] - dataset.index[0]).microseconds/1000
 
-# Let us impute the missing values and plot an example.
+    # Let us impute the missing values and plot an example.
 
-MisVal = ImputationMissingValues()
-imputed_mean_dataset = MisVal.impute_mean(copy.deepcopy(dataset), 'acc_z')
-imputed_median_dataset = MisVal.impute_median(copy.deepcopy(dataset), 'acc_z')
-imputed_interpolation_dataset = MisVal.impute_interpolate(copy.deepcopy(dataset), 'acc_z')
-# DataViz.plot_imputed_values(dataset, ['original', 'mean', 'interpolation'], 'hr_watch_rate', imputed_mean_dataset['hr_watch_rate'], imputed_interpolation_dataset['hr_watch_rate'])
+    MisVal = ImputationMissingValues()
+    # for att in attributes:
 
-# Now, let us carry out that operation over all columns except for the label.
+    # imputed_mean_dataset = MisVal.impute_mean(copy.deepcopy(dataset), 'acc_z')
+    # imputed_median_dataset = MisVal.impute_median(copy.deepcopy(dataset), 'acc_z')
+    # imputed_interpolation_dataset = MisVal.impute_interpolate(copy.deepcopy(dataset), 'acc_z')
+    # DataViz.plot_imputed_values(dataset, ['original', 'mean', 'interpolation'], 'hr_watch_rate', imputed_mean_dataset['hr_watch_rate'], imputed_interpolation_dataset['hr_watch_rate'])
 
-for col in [c for c in dataset.columns if not 'label' in c]:
-    dataset = MisVal.impute_interpolate(dataset, col)
+    # Now, let us carry out that operation over all columns except for the label.
 
-# Using the result from Chapter 2, let us try the Kalman filter on the light_phone_lux attribute and study the result.
+    for col in [c for c in dataset.columns if not 'label' in c]:
+        dataset = MisVal.impute_interpolate(dataset, col)
 
-original_dataset = pd.read_csv(DATA_PATH / ORIG_DATASET_FNAME, index_col=0)
-original_dataset.index = pd.to_datetime(original_dataset.index)
-# KalFilter = KalmanFilters()
-# kalman_dataset = KalFilter.apply_kalman_filter(original_dataset, 'acc_x')
-# DataViz.plot_imputed_values(kalman_dataset, ['original', 'kalman'], 'acc_x', kalman_dataset['acc_x_kalman'])
-# DataViz.plot_dataset(kalman_dataset, ['acc_x', 'acc_x_kalman'], ['exact','exact'], ['line', 'line'])
+    # Using the result from Chapter 2, let us try the Kalman filter on the light_phone_lux attribute and study the result.
 
-# We ignore the Kalman filter output for now...
+    original_dataset = pd.read_csv(DATA_PATH / ORIG_DATASET_FNAME, index_col=0)
+    original_dataset.index = pd.to_datetime(original_dataset.index)
+    KalFilter = KalmanFilters()
+    attributes = ['actvalue','builtvalue','commvalue','entvalue','accvalue','offvalue','othervalue','socialvalue','travelvalue','unkvalue','utilvalue','callvalue','arovalue','valvalue','scrvalue','smsvalue']
+    for att in attributes:
 
-# Let us apply a lowpass filter and reduce the importance of the data above 1.5 Hz
+        kalman_dataset = KalFilter.apply_kalman_filter(original_dataset, att)
+    # DataViz.plot_imputed_values(kalman_dataset, ['original', 'kalman'], 'acc_x', kalman_dataset['acc_x_kalman'])
+    # DataViz.plot_dataset(kalman_dataset, ['acc_x', 'acc_x_kalman'], ['exact','exact'], ['line', 'line'])
 
-LowPass = LowPassFilter()
+    # We ignore the Kalman filter output for now...
 
-# Determine the sampling frequency.
-fs = float(1000)/35
-cutoff = 1.5
+    # Let us apply a lowpass filter and reduce the importance of the data above 1.5 Hz
 
-# Let us study acc_phone_x:
-new_dataset = LowPass.low_pass_filter(copy.deepcopy(dataset), 'acc_x', fs, cutoff, order=10)
-# print(new_dataset)
-# exit()
-# DataViz.plot_dataset(new_dataset.iloc[int(0.4*len(new_dataset.index)):int(0.43*len(new_dataset.index)), :],
-#                      ['acc_x', 'acc_x_lowpass'], ['exact','exact'], ['line', 'line'])
-# exit()
-# And not let us include all measurements that have a form of periodicity (and filter them):
-periodic_measurements = ['acc_x', 'acc_y', 'acc_z']
+    LowPass = LowPassFilter()
 
-for col in periodic_measurements:
-    dataset = LowPass.low_pass_filter(dataset, col, fs, cutoff, order=10)
-    dataset[col] = dataset[col + '_lowpass']
-    del dataset[col + '_lowpass']
+    # Determine the sampling frequency.
+    fs = float(1000)/35
+    cutoff = 1.5
 
+    # Let us study acc_phone_x:
+    # new_dataset = LowPass.low_pass_filter(copy.deepcopy(dataset), 'acc_x', fs, cutoff, order=10)
+    # print(new_dataset)
+    # exit()
+    # DataViz.plot_dataset(new_dataset.iloc[int(0.4*len(new_dataset.index)):int(0.43*len(new_dataset.index)), :],
+    #                      ['acc_x', 'acc_x_lowpass'], ['exact','exact'], ['line', 'line'])
+    # exit()
+    # And not let us include all measurements that have a form of periodicity (and filter them):
+    # periodic_measurements = ['acc_x', 'acc_y', 'acc_z']
 
-# Determine the PC's for all but our target columns (the labels and the heart rate)
-# We simplify by ignoring both, we could also ignore one first, and apply a PC to the remainder.
-dataset.columns = ['date_time','label',     'acc_x'     ,'acc_y' ,    'acc_z',  'labelDownstairs'  ,'labelJogging'  ,'labelSitting'  ,'labelStanding' , 'labelUpstairs' , 'labelWalking']
+    # for col in periodic_measurements:
+    #     dataset = LowPass.low_pass_filter(dataset, col, fs, cutoff, order=10)
+    #     dataset[col] = dataset[col + '_lowpass']
+    #     del dataset[col + '_lowpass']
+    dataset = dataset.dropna()
+    
+    # Determine the PC's for all but our target columns (the labels and the heart rate)
+    # We simplify by ignoring both, we could also ignore one first, and apply a PC to the remainder.
+    # dataset.columns = ['date_time','label',     'acc_x'     ,'acc_y' ,    'acc_z',  'labelDownstairs'  ,'labelJogging'  ,'labelSitting'  ,'labelStanding' , 'labelUpstairs' , 'labelWalking']
 
-PCA = PrincipalComponentAnalysis()
-# dataset = dataset.drop(columns=['Unnamed: 1'])
-selected_predictor_cols = [c for c in dataset.columns if (not ('label' in c)) and (not (c == 'acc_x'))]
-# pc_values = PCA.determine_pc_explained_variance(dataset, selected_predictor_cols)
+    PCA = PrincipalComponentAnalysis()
+    # dataset = dataset.drop(columns=['Unnamed: 1'])
+    selected_predictor_cols = [c for c in dataset.columns if (not ('label' in c)) ]
+    # pc_values = PCA.determine_pc_explained_variance(dataset, selected_predictor_cols)
+    print(dataset[selected_predictor_cols].isna().sum())
+    
+    # exit()
+    # Plot the variance explained.
+    # DataViz.plot_xy(x=[range(1, len(selected_predictor_cols)+1)], y=[pc_values],
+    #                 ylim=[0,1], line_styles=['b-'])
 
-# Plot the variance explained.
-# DataViz.plot_xy(x=[range(1, len(selected_predictor_cols)+1)], y=[pc_values],
-#                 ylim=[0,1], line_styles=['b-'])
+    # We select 7 as the best number of PC's as this explains most of the variance
 
-# We select 7 as the best number of PC's as this explains most of the variance
+    n_pcs = 13
 
-n_pcs = 3
+    # dataset.index = dataset.index.astype(int)
+    dataset.index =  pd.to_datetime(dataset.index, format='%Y-%m-%d %H:%M:%S')
+    
+    # print(dataset.index )
+    # exit()
+    # dataset = dataset.head()
+    # exit()
 
-# dataset.index = dataset.index.astype(int)
-dataset['date_time'] =  pd.to_datetime(dataset['date_time'], format='%Y-%m-%d %H:%M:%S.%f')
-print(dataset)
-print(dataset['date_time'])
-# exit()
-# exit()
-dataset = PCA.apply_pca(copy.deepcopy(dataset), selected_predictor_cols, n_pcs)
+    print(dataset.isna().sum())
 
-#And we visualize the result of the PC's
+    # print(dataset.isna())
+    dataset = PCA.apply_pca(copy.deepcopy(dataset), selected_predictor_cols, n_pcs)
 
-# DataViz.plot_dataset(dataset, ['pca_', 'label'], ['like', 'like'], ['line', 'points'])
+    #And we visualize the result of the PC's
 
-# # And the overall final dataset:
+    # DataViz.plot_dataset(dataset, ['pca_', 'label'], ['like', 'like'], ['line', 'points'])
 
-# DataViz.plot_dataset(dataset, ['acc_', 'gyr_', 'hr_watch_rate', 'light_phone_lux', 'mag_', 'press_phone_', 'pca_', 'label'],
-#                      ['like', 'like', 'like', 'like', 'like', 'like', 'like','like', 'like'],
-#                      ['line', 'line', 'line', 'line', 'line', 'line', 'line', 'points', 'points'])
+    # # And the overall final dataset:
 
-# Store the outcome.
-print(dataset)
-dataset.to_csv(DATA_PATH / RESULT_FNAME)
+    # DataViz.plot_dataset(dataset, ['acc_', 'gyr_', 'hr_watch_rate', 'light_phone_lux', 'mag_', 'press_phone_', 'pca_', 'label'],
+    #                      ['like', 'like', 'like', 'like', 'like', 'like', 'like','like', 'like'],
+    #                      ['line', 'line', 'line', 'line', 'line', 'line', 'line', 'points', 'points'])
+
+    # Store the outcome.
+    print(dataset)
+    dataset.to_csv(DATA_PATH / RESULT_FNAME)

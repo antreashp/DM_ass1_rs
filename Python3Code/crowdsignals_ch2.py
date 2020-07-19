@@ -30,21 +30,21 @@ $ python3 crowdsignals_ch2.py my/proj/data/folder my_dataset.csv
 
 If no location is specified, the default locations in the else statement are chosen, which are set to load each script's
 output into the next by default.
-"""
-user = 'user_3'
-user = 'book'
+# """
+# user = 'user_3'
+# user = 'book'
 # user = 'user_2'
 # user = 'user_3'
 # DATASET_PATH = Path(sys.argv[1] if len(sys.argv) > 1 else '../csv-participant-one/')
 for user in range(1,36):
         
-    DATASET_PATH = Path(sys.argv[1] if len(sys.argv) > 1 else '../my_dataset_final/'+str(user)+'/')
-    RESULT_PATH = Path('./intermediate_datafiles/'+str(user)+'/')
+    DATASET_PATH = Path(sys.argv[1] if len(sys.argv) > 1 else '../data/AS14_'+"{:02d}".format(user)+'/')
+    RESULT_PATH = Path('./intermediate_datafiles/AS14_'+"{:02d}".format(user)+'/')
     RESULT_FNAME = sys.argv[2] if len(sys.argv) > 2 else 'chapter2_result.csv'
 
     # Set a granularity (the discrete step size of our time series data). We'll use a course-grained granularity of one
     # instance per minute, and a fine-grained one with four instances per second.
-    GRANULARITIES = [250]
+    GRANULARITIES = [86400000]
 
     # We can call Path.mkdir(exist_ok=True) to make any required directories if they don't already exist.
     [path.mkdir(exist_ok=True, parents=True) for path in [DATASET_PATH, RESULT_PATH]]
@@ -59,22 +59,89 @@ for user in range(1,36):
 
         # Add the selected measurements to it.
         # if user == 'user_2':
-        dataset.add_numerical_dataset('accelerometer_phone.csv', 'timestamps', ['x','y','z'], 'avg', 'acc')
-        dataset.add_event_dataset('labels.csv', 'label_start', 'label_end', 'label', 'binary')
+        try:
+            dataset.add_numerical_dataset('activity.csv', 'time', ['value'], 'avg', 'act')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_builtin.csv', 'time', ['value'], 'avg', 'built')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_communication.csv', 'time', ['value'], 'avg', 'comm')        
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_entertainment.csv', 'time', ['value'], 'avg', 'ent')        
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_finance.csv', 'time', ['value'], 'avg', 'acc')        
+        except:
+            pass
+
+        try:
+            dataset.add_numerical_dataset('appCat_office.csv', 'time', ['value'], 'avg', 'off')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_other.csv', 'time', ['value'], 'avg', 'other')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_social.csv', 'time', ['value'], 'avg', 'social')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_travel.csv', 'time', ['value'], 'avg', 'travel')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_unknown.csv', 'time', ['value'], 'avg', 'unk')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('appCat_utilities.csv', 'time', ['value'], 'avg', 'util')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('call.csv', 'time', ['value'], 'avg', 'call')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('circumplex_arousal.csv', 'time', ['value'], 'avg', 'aro')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('circumplex_valence.csv', 'time', ['value'], 'avg', 'val')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('screen.csv', 'time', ['value'], 'avg', 'scr')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('sms.csv', 'time', ['value'], 'avg', 'sms')
+        except:
+            pass
+        try:
+            dataset.add_numerical_dataset('mood.csv', 'time', ['value'], 'avg', 'label')
+        except:
+            pass
         dataset = dataset.data_table
 
         # Plot the data
-        DataViz = VisualizeDataset(__file__,user)
+        # DataViz = VisualizeDataset(__file__,user)
 
         # Boxplot
-        DataViz.plot_dataset_boxplot(dataset, ['acc_phone_x','acc_phone_y','acc_phone_z'])
-        print(dataset)
-        print(dataset.shape)
+        # DataViz.plot_dataset_boxplot(dataset, ['acc_phone_x','acc_phone_y','acc_phone_z'])
+        # print(dataset)
+        # print(dataset.shape)
         # Plot all data
 
-        DataViz.plot_dataset(dataset, ['acc_' , 'label'],
-                                    ['like', 'like', 'like', 'like'],
-                                    ['line','line', 'points', 'points' ])
+        # DataViz.plot_dataset(dataset, ['acc_' , 'label'],
+        #                             ['like', 'like', 'like', 'like'],
+        #                             ['line','line', 'points', 'points' ])
 
         
         # We add the accelerometer data (continuous numerical measurements) of the phone and the smartwatch
@@ -105,10 +172,12 @@ for user in range(1,36):
 
         # Get the resulting pandas data table
         # And print a summary of the dataset.
-        util.print_statistics(dataset)
+        # util.print_statistics(dataset)
         datasets.append(copy.deepcopy(dataset))
-
-        dataset.to_csv(RESULT_PATH / RESULT_FNAME)
+        try:
+            dataset.to_csv(RESULT_PATH / RESULT_FNAME)
+        except:
+            pass
         # If needed, we could save the various versions of the dataset we create in the loop with logical filenames:
         # dataset.to_csv(RESULT_PATH / f'chapter2_result_{milliseconds_per_instance}')
 

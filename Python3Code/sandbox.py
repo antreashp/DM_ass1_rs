@@ -1,10 +1,9 @@
-import datetime
+import pandas as pd
 
 
 
-dt_object = datetime.datetime.fromtimestamp(1454957171503000064 / 1e3)
+df = pd.read_csv("../data/dataset_mood_smartphone.csv")
+print(df)
 
-print("dt_object =", dt_object)
-1454956393088000000
-1591359640
-1000000000
+df1 = df[(df['value'] >= 0.1) & (df['variable'] == 'mood')]
+print(df1)
