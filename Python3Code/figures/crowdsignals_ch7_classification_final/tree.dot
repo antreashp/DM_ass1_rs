@@ -1,0 +1,20 @@
+digraph Tree {
+node [shape=box] ;
+0 [label="acc_y_temp_mean_ws_750 <= 9.95\nentropy = 1.962\nsamples = 28\nvalue = [5, 2, 3, 4, 14]\nclass = labelWalking"] ;
+1 [label="pca_2_temp_std_ws_750 <= 0.054\nentropy = 1.924\nsamples = 14\nvalue = [5, 2, 3, 4, 0]\nclass = labelDownstairs"] ;
+0 -> 1 [labeldistance=2.5, labelangle=45, headlabel="True"] ;
+2 [label="acc_z_temp_std_ws_750 <= 0.924\nentropy = 0.985\nsamples = 7\nvalue = [0, 0, 3, 4, 0]\nclass = labelUpstairs"] ;
+1 -> 2 ;
+3 [label="entropy = 0.0\nsamples = 3\nvalue = [0, 0, 3, 0, 0]\nclass = labelSitting"] ;
+2 -> 3 ;
+4 [label="entropy = 0.0\nsamples = 4\nvalue = [0, 0, 0, 4, 0]\nclass = labelUpstairs"] ;
+2 -> 4 ;
+5 [label="acc_z_freq_10.7_Hz_ws_250 <= 1.116\nentropy = 0.863\nsamples = 7\nvalue = [5, 2, 0, 0, 0]\nclass = labelDownstairs"] ;
+1 -> 5 ;
+6 [label="entropy = 0.0\nsamples = 5\nvalue = [5, 0, 0, 0, 0]\nclass = labelDownstairs"] ;
+5 -> 6 ;
+7 [label="entropy = 0.0\nsamples = 2\nvalue = [0, 2, 0, 0, 0]\nclass = labelJogging"] ;
+5 -> 7 ;
+8 [label="entropy = 0.0\nsamples = 14\nvalue = [0, 0, 0, 0, 14]\nclass = labelWalking"] ;
+0 -> 8 [labeldistance=2.5, labelangle=-45, headlabel="False"] ;
+}
